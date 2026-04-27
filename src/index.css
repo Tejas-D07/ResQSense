@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans:  "Syne", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:  "JetBrains Mono", ui-monospace, monospace;
+
+  --color-void:        #03050a;
+  --color-deep:        #080d18;
+  --color-surface:     #0d1424;
+  --color-panel:       #111929;
+  --color-border:      rgba(255,255,255,0.07);
+
+  --color-pulse:       #2563eb;
+  --color-pulse-glow:  rgba(37,99,235,0.35);
+  --color-safe:        #10b981;
+  --color-safe-glow:   rgba(16,185,129,0.3);
+  --color-warn:        #f59e0b;
+  --color-warn-glow:   rgba(245,158,11,0.3);
+  --color-danger:      #ef4444;
+  --color-danger-glow: rgba(239,68,68,0.35);
+
+  --color-text-primary:   #f1f5f9;
+  --color-text-secondary: #64748b;
+  --color-text-muted:     #334155;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--color-void);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Noise grain overlay ──────────────────────────────────────────────────── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+/* ── Glass surfaces ───────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+}
+
+.glass-strong {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+}
+
+/* ── Glows ────────────────────────────────────────────────────────────────── */
+.glow-pulse   { box-shadow: 0 0 60px -12px var(--color-pulse-glow),  0 0 20px -8px var(--color-pulse-glow); }
+.glow-safe    { box-shadow: 0 0 60px -12px var(--color-safe-glow),   0 0 20px -8px var(--color-safe-glow); }
+.glow-warn    { box-shadow: 0 0 60px -12px var(--color-warn-glow),   0 0 20px -8px var(--color-warn-glow); }
+.glow-danger  { box-shadow: 0 0 60px -12px var(--color-danger-glow), 0 0 20px -8px var(--color-danger-glow); }
+
+/* ── Animated pulse ring ──────────────────────────────────────────────────── */
+@keyframes ring-expand {
+  0%   { transform: translate(-50%,-50%) scale(1);   opacity: 0.6; }
+  100% { transform: translate(-50%,-50%) scale(2.2); opacity: 0;   }
+}
+
+.pulse-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  border-radius: 50%;
+  animation: ring-expand 2s ease-out infinite;
+}
+
+/* ── Danger background ────────────────────────────────────────────────────── */
+.bg-danger-radial {
+  background: radial-gradient(ellipse at center, rgba(127,29,29,0.4) 0%, var(--color-void) 70%);
+}
+
+/* ── Scanline effect for active monitoring ───────────────────────────────── */
+@keyframes scanline {
+  0%   { top: -5%; }
+  100% { top: 105%; }
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(transparent, rgba(37,99,235,0.15), transparent);
+  animation: scanline 3s linear infinite;
+  pointer-events: none;
+}
+
+/* ── Mono label ───────────────────────────────────────────────────────────── */
+.mono { font-family: var(--font-mono); }
+
+/* ── Status badge ─────────────────────────────────────────────────────────── */
+.status-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--color-safe);
+  box-shadow: 0 0 8px var(--color-safe);
+}
+
+/* ── Number ticker animation ──────────────────────────────────────────────── */
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.flicker { animation: flicker 1.4s ease-in-out infinite; }

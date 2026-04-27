@@ -1,0 +1,9 @@
+node_modules/
+backend/.venv/
+venv/
+.gradle/
+build/
+android/app/build/
+.env
+backend/serviceAccountKey.json
+.DS_Store
