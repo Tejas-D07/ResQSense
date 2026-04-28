@@ -1,112 +1,157 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { AppState, UserProfile } from './types';
-import SplashScreen from './components/screens/SplashScreen';
-import PermissionsScreen from './components/screens/PermissionsScreen';
-import UserSetupScreen from './components/screens/UserSetupScreen';
-import MonitoringScreen from './components/screens/MonitoringScreen';
-import AlertScreens from './components/screens/AlertScreens';
+import LandingPage from './components/LandingPage';
+import AuthScreen from './components/AuthScreen';
+import Dashboard from './components/Dashboard';
+import { AlertEntry, UserProfile, ViewMode } from './types';
+import { triggerEmergencyDemo } from './services/demoApi';
 
-const pageVariants = {
-  initial: { opacity: 0, y: 16 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
-  exit:    { opacity: 0, y: -16, transition: { duration: 0.25 } },
+const demoProfile: UserProfile = {
+  name: 'Avery Cole',
+  email: 'avery@nexquad.io',
+  phone: '+1 555 024 8486',
+  emergencyContacts: ['Mom — +1 555 123 4567', 'Partner — +1 555 987 6543'],
 };
 
+const defaultAlerts: AlertEntry[] = [
+  {
+    id: 'alert-1',
+    title: 'System Ready',
+    message: 'ResQSense is primed for live monitoring in demo mode.',
+    severity: 'safe',
+    timestamp: 'Just now',
+    source: 'System',
+  },
+  {
+    id: 'alert-2',
+    title: 'AI Sound Check',
+    message: 'Demo audio classification is available for simulated crises.',
+    severity: 'warning',
+    timestamp: '2 mins ago',
+    source: 'Simulation Engine',
+  },
+];
+
 export default function App() {
-  const [currentPage, setCurrentPage]           = useState<AppState>(AppState.SPLASH);
-  const [userProfile, setUserProfile]           = useState<UserProfile | null>(null);
-  const [isMonitoringActive, setIsMonitoringActive] = useState(false);
+  const [view, setView] = useState<ViewMode>('landing');
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [alerts, setAlerts] = useState<AlertEntry[]>(defaultAlerts);
+  const [monitoringActive, setMonitoringActive] = useState(false);
+  const [latestEmergency, setLatestEmergency] = useState<AlertEntry | null>(null);
 
-  const toPermissions = () => setCurrentPage(AppState.PERMISSIONS);
-  const toSetup       = () => setCurrentPage(AppState.USER_SETUP);
+  const userName = user?.name.split(' ')[0] ?? 'ResQSense User';
 
-  const toMonitoring  = (profile?: UserProfile) => {
-    if (profile) setUserProfile(profile);
-    setCurrentPage(AppState.MONITORING_INACTIVE);
+  const openDashboard = (profile: UserProfile) => {
+    setUser(profile);
+    setMonitoringActive(true);
+    setView('dashboard');
   };
 
-  const toggleMonitoring = () => {
-    setIsMonitoringActive(prev => !prev);
-    setCurrentPage(prev =>
-      prev === AppState.MONITORING_INACTIVE
-        ? AppState.MONITORING_ACTIVE
-        : AppState.MONITORING_INACTIVE
-    );
+  const handleAuthenticate = (profile: UserProfile) => {
+    setAlerts([
+      {
+        id: `alert-${Date.now()}`,
+        title: 'Welcome aboard',
+        message: `Hi ${profile.name.split(' ')[0]}, your safety dashboard is ready.`,
+        severity: 'safe',
+        timestamp: 'Just now',
+        source: 'System',
+      },
+      ...defaultAlerts,
+    ]);
+    openDashboard(profile);
   };
 
-  const triggerValidation = () => setCurrentPage(AppState.PRE_DANGER_VALIDATION);
-  const triggerDanger     = () => setCurrentPage(AppState.DANGER_DETECTED);
-  const triggerEscalation = () => setCurrentPage(AppState.EMERGENCY_ACTIVATED);
+  const handleEmergency = async () => {
+    if (!user) return;
+    const result = await triggerEmergencyDemo(user);
+    const record: AlertEntry = {
+      id: `alert-${Date.now()}`,
+      title: result.backend ? 'Emergency Escalated' : 'Emergency Simulation Triggered',
+      message: result.backend
+        ? 'Your alert was sent through the connected backend service.'
+        : 'This emergency is being simulated for the web prototype.',
+      severity: 'critical',
+      timestamp: 'Right now',
+      source: result.backend ? 'Backend API' : 'Web Demo',
+    };
 
-  const setSafe = () => {
-    setCurrentPage(AppState.POST_EMERGENCY);
-    setIsMonitoringActive(false);
+    setLatestEmergency(record);
+    setAlerts(prev => [record, ...prev].slice(0, 12));
+    setMonitoringActive(true);
   };
 
-  const resetMonitoring = () => {
-    setCurrentPage(AppState.MONITORING_INACTIVE);
-    setIsMonitoringActive(false);
+  const handleLogout = () => {
+    setUser(null);
+    setView('landing');
+    setMonitoringActive(false);
+    setLatestEmergency(null);
   };
 
-  const isAlertState = [
-    AppState.PRE_DANGER_VALIDATION,
-    AppState.DANGER_DETECTED,
-    AppState.EMERGENCY_ACTIVATED,
-    AppState.POST_EMERGENCY,
-  ].includes(currentPage);
+  const handleUpdateContacts = (contacts: string[]) => {
+    if (!user) return;
+    setUser({ ...user, emergencyContacts: contacts });
+  };
+
+  const currentSection = useMemo(() => view, [view]);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--color-void)', color: 'var(--color-text-primary)' }}>
+    <div className="min-h-screen" style={{ background: 'radial-gradient(circle at top, rgba(59,130,246,0.15), transparent 28%), radial-gradient(circle at 20% 10%, rgba(168,85,247,0.18), transparent 20%), var(--color-void)' }}>
       <AnimatePresence mode="wait">
-        {currentPage === AppState.SPLASH && (
-          <motion.div key="splash" {...pageVariants}>
-            <SplashScreen onComplete={toPermissions} />
-          </motion.div>
-        )}
-
-        {currentPage === AppState.PERMISSIONS && (
-          <motion.div key="permissions" {...pageVariants}>
-            <PermissionsScreen onComplete={toSetup} />
-          </motion.div>
-        )}
-
-        {currentPage === AppState.USER_SETUP && (
-          <motion.div key="setup" {...pageVariants}>
-            <UserSetupScreen onComplete={toMonitoring} />
-          </motion.div>
-        )}
-
-        {(currentPage === AppState.MONITORING_INACTIVE || currentPage === AppState.MONITORING_ACTIVE) && (
-          <motion.div key="monitoring" {...pageVariants}>
-            <MonitoringScreen
-              isActive={isMonitoringActive}
-              userProfile={userProfile}
-              onToggle={toggleMonitoring}
-              onTriggerAlert={triggerValidation}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Alert screens overlay */}
-      <AnimatePresence>
-        {isAlertState && (
+        {currentSection === 'landing' && (
           <motion.div
-            key="alerts"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 50 }}
+            key="landing"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           >
-            <AlertScreens
-              currentStep={currentPage}
-              userProfile={userProfile}
-              onCancel={setSafe}
-              onEscalate={
-                currentPage === AppState.PRE_DANGER_VALIDATION ? triggerDanger : triggerEscalation
-              }
-              onRestart={resetMonitoring}
+            <LandingPage onNavigate={setView} />
+          </motion.div>
+        )}
+
+        {currentSection === 'login' && (
+          <motion.div
+            key="login"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AuthScreen mode="login" onAuthenticate={handleAuthenticate} onSwitch={setView} />
+          </motion.div>
+        )}
+
+        {currentSection === 'signup' && (
+          <motion.div
+            key="signup"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <AuthScreen mode="signup" onAuthenticate={handleAuthenticate} onSwitch={setView} />
+          </motion.div>
+        )}
+
+        {currentSection === 'dashboard' && user && (
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -18 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Dashboard
+              user={user}
+              userName={userName}
+              alerts={alerts}
+              latestEmergency={latestEmergency}
+              monitoringActive={monitoringActive}
+              onLogout={handleLogout}
+              onToggleMonitoring={() => setMonitoringActive(prev => !prev)}
+              onTriggerEmergency={handleEmergency}
+              onUpdateContacts={handleUpdateContacts}
             />
           </motion.div>
         )}

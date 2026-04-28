@@ -186,6 +186,34 @@ Serve `dist/` with any static host and keep the backend running.
 
 ---
 
+## Vercel Deployment
+
+This project is ready for Vercel deployment using `vercel.json` and the existing Vite build.
+
+1. Install Vercel CLI (optional):
+
+```bash
+npm install -g vercel
+```
+
+2. Log in to Vercel:
+
+```bash
+vercel login
+```
+
+3. Deploy the web prototype:
+
+```bash
+vercel --prod
+```
+
+4. When prompted, select the current project root and use the default build settings.
+
+> Note: The web frontend deploys as a static site. The backend remains available locally for API testing on `http://localhost:5002`.
+
+---
+
 ## Troubleshooting
 
 | Problem | Fix |

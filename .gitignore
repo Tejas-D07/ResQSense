@@ -7,3 +7,4 @@ android/app/build/
 .env
 backend/serviceAccountKey.json
 .DS_Store
+.vercel

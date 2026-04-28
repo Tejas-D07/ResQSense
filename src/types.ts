@@ -38,3 +38,22 @@ export interface AlertPayload {
   location?:  { lat: number; lng: number } | null;
   timestamp?: string;
 }
+
+export interface AuthCredentials {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  contacts: string[];
+}
+
+export type ViewMode = 'landing' | 'login' | 'signup' | 'dashboard';
+
+export interface AlertEntry {
+  id: string;
+  title: string;
+  message: string;
+  severity: 'safe' | 'warning' | 'critical';
+  timestamp: string;
+  source: string;
+}

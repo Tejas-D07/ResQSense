@@ -2,9 +2,14 @@ const express = require("express");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+let model = null;
+if (process.env.GEMINI_API_KEY) {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  console.log("✅ Gemini AI initialized");
+} else {
+  console.warn("⚠️ Gemini API key not configured. AI analysis endpoint will return SAFE by default.");
+}
 
 router.post("/analyze-message", async (req, res) => {
   const { message } = req.body;
@@ -16,9 +21,12 @@ router.post("/analyze-message", async (req, res) => {
   // Simple keyword pre-check for speed (though instructed to do on Android, good to have here too)
   const keywords = ["help", "danger", "emergency"];
   const lowerMsg = message.toLowerCase();
-  if (keywords.some(k => lowerMsg.includes(keywords))) {
-      // If found in backend too, return immediately
-      // return res.json({ result: "EMERGENCY" });
+  if (keywords.some(k => lowerMsg.includes(k))) {
+    return res.json({ result: "EMERGENCY" });
+  }
+
+  if (!model) {
+    return res.status(503).json({ error: "Gemini API key not configured", result: "SAFE" });
   }
 
   try {
