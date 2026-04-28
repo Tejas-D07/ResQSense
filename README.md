@@ -1,225 +1,216 @@
-# 🛡️ Predictive Emergency AI
+🛡️ ResQSense – AI-Powered Predictive Emergency Response System
 
-A real-time intelligent safety monitoring system that detects danger using **YAMNet** (Google's audio classification model) and automatically escalates emergencies.
+ResQSense, developed by NexQuad, is an intelligent real-time safety platform designed to proactively detect danger, monitor emergencies, and automatically escalate crisis response using AI-powered sound detection, SOS activation, live location sharing, and emergency communication systems.
 
----
+⸻
 
-## Architecture
+🌐 Live Prototype
 
-```
+https://resqsense-nexquad.netlify.app/
+
+⸻
+
+🎥 Demo Video
+
+https://drive.google.com/file/d/1v1GeF-EeG_tmNAbicDDR7pOGa3KwFduB/view?usp=sharing
+
+⸻
+
+💡 Problem Statement
+
+Traditional emergency response systems are often reactive, delayed, and dependent on manual intervention, resulting in slower crisis management during dangerous situations. Individuals facing emergencies such as assaults, accidents, fires, or distress situations may not always be able to manually call for help.
+
+ResQSense solves this problem by using predictive AI, real-time sound analysis, emergency trigger systems, and automated communication protocols to significantly reduce emergency response time and improve public safety.
+
+⸻
+
+🚀 Key Features
+
+* 🎤 Real-time danger sound detection using Google YAMNet
+* 🚨 AI-based crisis recognition (screams, gunshots, explosions, alarms)
+* 📍 Automatic live location sharing
+* 📱 SOS emergency activation button
+* 🗣️ Voice/text emergency trigger support
+* 📨 Automated SMS alerts to emergency contacts
+* 🚓 Future-ready escalation to police, ambulance, and fire services
+* 📊 Multi-stage emergency escalation flow
+* 🌍 Android + Web prototype support
+* 🎨 Modern responsive UI/UX
+
+⸻
+
+🏗️ System Architecture
+
 Frontend (React + Vite)
     ↓ polls every 3s
 Backend (Express.js :5002)
-    ├── GET  /api/audio  → spawns detect_sound.py → YAMNet inference
-    └── POST /api/alert  → 2-confirmation danger logic
-```
+    ├── GET  /api/audio  → detect_sound.py → YAMNet inference
+    └── POST /api/alert  → emergency confirmation logic
 
----
+⸻
 
-## Prerequisites
+🧠 How It Works
 
-| Tool        | Version  |
-|-------------|----------|
-| Node.js     | ≥ 18     |
-| Python      | ≥ 3.9    |
-| pip         | ≥ 23     |
+Step-by-Step Flow:
 
----
+1. Frontend continuously monitors environment
+2. Backend captures microphone audio
+3. YAMNet classifies audio into danger/non-danger classes
+4. If danger is detected:
+    * Validates repeated signals
+    * Activates alert workflow
+    * Captures geolocation
+    * Sends SMS alerts
+    * Escalates emergency response
+5. User receives emergency guidance and protection workflow
 
-## Setup
+⸻
 
-### 1. Install Python dependencies (backend)
+🎯 Danger Categories Detected
 
-```bash
+* Human distress (screams, crying, shouting)
+* Gunshots / explosions
+* Fire alarms / sirens
+* Glass breaking
+* Vehicle crashes
+* Police / ambulance sirens
+* Emergency environmental sounds
+
+⸻
+
+📲 SMS & Emergency Alert System
+
+Upon confirmed danger:
+
+* Live location captured
+* Reverse geocoding enabled
+* Emergency contacts notified
+* Alert includes:
+    * Danger type
+    * Confidence score
+    * Location
+    * Timestamp
+
+⸻
+
+🛠️ Technology Stack
+
+Layer	Technologies
+Frontend	React, Vite, TypeScript
+Backend	Node.js, Express.js
+AI/ML	TensorFlow, YAMNet
+Mobile	Android, Kotlin
+Cloud	Firebase
+SMS	Twilio API
+Deployment	Netlify
+Database	Firebase Realtime DB
+
+⸻
+
+📂 Project Structure
+
+ResQSense/
+├── android/
+├── backend/
+│   ├── detect_sound.py
+│   ├── server.js
+│   └── routes/
+├── src/
+│   ├── components/
+│   ├── hooks/
+│   └── App.tsx
+├── README.md
+├── SMS_SETUP.md
+├── QUICK_START.md
+└── IMPLEMENTATION_COMPLETE.md
+
+⸻
+
+⚙️ Installation & Setup
+
+Backend:
+
 cd backend
 pip install -r requirements.txt
-```
-
-On Linux you may also need:
-```bash
-sudo apt install libportaudio2
-```
-
-> **Note:** YAMNet model weights (~25 MB compressed) are downloaded automatically on first run and cached at `~/.cache/tfhub_modules/`. No dataset download is required.
-
-### 2. Install Node.js dependencies
-
-```bash
-# Frontend
 npm install
-
-# Backend
-cd backend && npm install
-```
-
-### 3. Configure environment
-
-```bash
-cp backend/.env.example backend/.env
-# Edit .env if needed (default port is 5002)
-```
-
----
-
-## Running
-
-Open **two terminals**:
-
-**Terminal 1 — Backend:**
-```bash
-cd backend
-source venv/bin/activate      # Activate Python virtual environment
 npm start
-# → Backend running on http://localhost:5002
-```
 
-On Windows, use:
-```bash
-cd backend
-venv\Scripts\activate         # Windows activation
-npm start
-```
+Frontend:
 
-**Terminal 2 — Frontend:**
-```bash
+npm install
 npm run dev
-# → Frontend running on http://localhost:5173
-```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+⸻
 
----
+🔒 Permissions Required
 
-## How YAMNet Works Here
+* Microphone access
+* Location access
+* SMS permissions (Android)
+* Emergency contact configuration
 
-1. Every 3 seconds the frontend polls `GET /api/audio`
-2. The backend spawns `detect_sound.py` which:
-   - Records **2 seconds** of microphone audio at **16 kHz**
-   - Runs the audio through **YAMNet** (521 AudioSet sound classes)
-   - Returns `{ sound, confidence, danger, top3 }`
-3. If `danger: true`, the frontend posts to `POST /api/alert`
-4. The alert route requires **2 consecutive danger signals** before triggering
-5. The frontend escalates through: Pre-validation → Danger → Emergency → All Clear
+⸻
 
-### Danger Keywords
+🌍 Deployment
 
-The following AudioSet class patterns trigger `danger: true`:
-- Human distress: scream, shout, crying, wail, shriek
-- Weapons: gunshot, explosion, blast, artillery
-- Breaking: glass break, shatter, crash
-- Alarms: smoke detector, fire alarm, siren, klaxon
-- Emergency services: police, ambulance, fire engine
+Web Prototype:
 
----
+Hosted on Netlify:
 
-## SMS & Emergency Alerts
+https://resqsense-nexquad.netlify.app/
 
-When a danger is confirmed (2 consecutive signals), the system:
-1. **Captures live location** — Uses browser Geolocation API to get user coordinates
-2. **Reverses geocode** — Converts coordinates to readable address (e.g., "Main St, Downtown")
-3. **Sends SMS alerts** — Notifies all emergency contacts via Twilio with:
-   - Detected sound type
-   - Detection confidence percentage
-   - Live user location
-   - Timestamp
+Android:
 
-### Configure SMS (Optional)
+Full mobile implementation available in repository.
 
-To enable SMS alerts to emergency contacts:
+⸻
 
-```bash
-# 1. Sign up for Twilio: https://www.twilio.com
-# 2. Get Account SID, Auth Token, and phone number
+🧩 Unique Selling Proposition (USP)
 
-# 3. Edit backend/.env:
-TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TWILIO_AUTH_TOKEN=your_auth_token_here
-TWILIO_PHONE_NUMBER=+1234567890
-```
+ResQSense stands out because it:
 
-**Note:** The app works without SMS configured — alerts will be logged to the console for testing.
+* Uses predictive AI instead of reactive-only systems
+* Provides real-time autonomous crisis detection
+* Combines audio intelligence + live location + emergency communication
+* Supports both web and Android ecosystems
+* Offers scalable public safety deployment potential
 
-See [SMS_SETUP.md](SMS_SETUP.md) for complete setup instructions.
+⸻
 
----
+🔮 Future Scope
 
-## Project Structure
+* 🚓 Direct law enforcement integration
+* 🚑 Ambulance/fire department auto-dispatch
+* 📶 Offline AI inference
+* ⌚ Wearable emergency devices
+* ☁️ Cloud-scale analytics dashboard
+* 🌐 Smart city emergency integration
+* 🧠 Advanced behavioral threat prediction
 
-```
-predictive-emergency-ai/
-├── index.html
-├── package.json          ← frontend deps
-├── vite.config.ts
-├── tsconfig.json
-├── src/
-│   ├── main.tsx
-│   ├── App.tsx
-│   ├── index.css
-│   ├── types.ts
-│   ├── hooks/
-│   │   └── useAudioMonitor.ts   ← polling + alert logic
-│   └── components/screens/
-│       ├── SplashScreen.tsx
-│       ├── PermissionsScreen.tsx
-│       ├── UserSetupScreen.tsx
-│       ├── MonitoringScreen.tsx  ← live detection feed
-│       └── AlertScreens.tsx      ← danger escalation flow
-└── backend/
-    ├── server.js
-    ├── package.json
-    ├── requirements.txt
-    ├── detect_sound.py   ← YAMNet inference
-    └── routes/
-        ├── audio.js      ← spawns Python
-        └── alert.js      ← confirmation logic
-```
+⸻
 
----
+🏆 Why ResQSense Matters
 
-## Build for Production
+ResQSense transforms emergency response from passive reporting into proactive protection by leveraging AI to detect danger before it escalates, empowering faster interventions and potentially saving lives.
 
-```bash
-npm run build        # outputs to dist/
-```
+⸻
 
-Serve `dist/` with any static host and keep the backend running.
+👨‍💻 Team
 
----
+NexQuad
 
-## Vercel Deployment
+* AI Safety Innovation
+* Emergency Technology Solutions
+* Predictive Crisis Response Systems
 
-This project is ready for Vercel deployment using `vercel.json` and the existing Vite build.
+⸻
 
-1. Install Vercel CLI (optional):
+📜 License
 
-```bash
-npm install -g vercel
-```
+Prototype / Academic Innovation Project
 
-2. Log in to Vercel:
+⸻
 
-```bash
-vercel login
-```
+⭐ Final Note
 
-3. Deploy the web prototype:
-
-```bash
-vercel --prod
-```
-
-4. When prompted, select the current project root and use the default build settings.
-
-> Note: The web frontend deploys as a static site. The backend remains available locally for API testing on `http://localhost:5002`.
-
----
-
-## Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `sounddevice` error on Linux | `sudo apt install libportaudio2` |
-| Python not found on Windows | Use `python` instead of `python3` (auto-detected) |
-| Model slow on first run | YAMNet downloads once (~25 MB) and caches |
-| Backend not connecting | Ensure port 5002 is free; check CORS in `.env` |
-| No microphone detected | Grant microphone permission in the browser |
+ResQSense represents the future of AI-driven public safety, combining machine learning, emergency automation, and modern user-centric design to create a smarter and safer world.
