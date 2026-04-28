@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import LandingPage from './components/LandingPage';
 import AuthScreen from './components/AuthScreen';
 import Dashboard from './components/Dashboard';
+import OnboardingModal from './components/OnboardingModal';
 import { AlertEntry, UserProfile, ViewMode } from './types';
 import { triggerEmergencyDemo } from './services/demoApi';
 
@@ -38,8 +39,42 @@ export default function App() {
   const [alerts, setAlerts] = useState<AlertEntry[]>(defaultAlerts);
   const [monitoringActive, setMonitoringActive] = useState(false);
   const [latestEmergency, setLatestEmergency] = useState<AlertEntry | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [permissions, setPermissions] = useState({
+    microphone: false,
+    location: false,
+  });
 
   const userName = user?.name.split(' ')[0] ?? 'ResQSense User';
+
+  useEffect(() => {
+    const onboarded = localStorage.getItem('resqsense_onboarded');
+    if (!onboarded) {
+      setShowOnboarding(true);
+    }
+
+    // Check permissions
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(() => {
+        setPermissions(prev => ({ ...prev, microphone: true }));
+      }).catch(() => {});
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(() => {
+        setPermissions(prev => ({ ...prev, location: true }));
+      }, () => {});
+    }
+  }, []);
+
+  const openDashboard = (profile: UserProfile) => {
+    setUser(profile);
+    setMonitoringActive(true);
+    setView('dashboard');
+    setShowOnboarding(false);
+  };
+
+  const handleAuthenticate = (profile: UserProfile) => {
 
   const openDashboard = (profile: UserProfile) => {
     setUser(profile);
@@ -96,7 +131,7 @@ export default function App() {
   const currentSection = useMemo(() => view, [view]);
 
   return (
-    <div className="min-h-screen" style={{ background: 'radial-gradient(circle at top, rgba(59,130,246,0.15), transparent 28%), radial-gradient(circle at 20% 10%, rgba(168,85,247,0.18), transparent 20%), var(--color-void)' }}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-slate-900">
       <AnimatePresence mode="wait">
         {currentSection === 'landing' && (
           <motion.div
@@ -148,12 +183,19 @@ export default function App() {
               alerts={alerts}
               latestEmergency={latestEmergency}
               monitoringActive={monitoringActive}
+              permissions={permissions}
               onLogout={handleLogout}
               onToggleMonitoring={() => setMonitoringActive(prev => !prev)}
               onTriggerEmergency={handleEmergency}
               onUpdateContacts={handleUpdateContacts}
             />
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingModal onComplete={openDashboard} />
         )}
       </AnimatePresence>
     </div>

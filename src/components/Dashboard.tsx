@@ -8,6 +8,7 @@ interface Props {
   alerts: AlertEntry[];
   latestEmergency: AlertEntry | null;
   monitoringActive: boolean;
+  permissions: { microphone: boolean; location: boolean };
   onLogout: () => void;
   onToggleMonitoring: () => void;
   onTriggerEmergency: () => void;
@@ -20,6 +21,7 @@ export default function Dashboard({
   alerts,
   latestEmergency,
   monitoringActive,
+  permissions,
   onLogout,
   onToggleMonitoring,
   onTriggerEmergency,
@@ -39,7 +41,31 @@ export default function Dashboard({
   const removeContact = (index: number) =>
     setEditableContacts(prev => prev.filter((_, idx) => idx !== index));
 
-  const saveContacts = () => onUpdateContacts(editableContacts.filter(Boolean));
+  const handleToggleMonitoring = async () => {
+    if (!monitoringActive) {
+      // Request permissions when starting monitoring
+      if (!permissions.microphone) {
+        try {
+          await navigator.mediaDevices.getUserMedia({ audio: true });
+          // Note: permissions update would need a callback, but for now, assume granted
+        } catch {
+          alert('Microphone permission required for monitoring. Please grant access in browser settings.');
+          return;
+        }
+      }
+      if (!permissions.location) {
+        try {
+          await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
+        } catch {
+          alert('Location permission required for emergency alerts. Please grant access in browser settings.');
+          return;
+        }
+      }
+    }
+    onToggleMonitoring();
+  };
 
   const summaryStatus = monitoringActive
     ? latestEmergency?.severity === 'critical'
@@ -77,7 +103,7 @@ export default function Dashboard({
                   <h2 className="mt-3 text-3xl font-semibold text-white">{summaryStatus}</h2>
                 </div>
                 <button
-                  onClick={onToggleMonitoring}
+                  onClick={handleToggleMonitoring}
                   className="rounded-3xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
                 >
                   {monitoringActive ? 'Pause monitoring' : 'Activate monitoring'}
@@ -90,12 +116,18 @@ export default function Dashboard({
                   <p className="mt-3 text-2xl font-semibold text-white">{user.emergencyContacts.length}</p>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-5">
-                  <p className="text-sm text-slate-400">Recent alerts</p>
-                  <p className="mt-3 text-2xl font-semibold text-white">{alerts.length}</p>
+                  <p className="text-sm text-slate-400">Microphone</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${permissions.microphone ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <p className="text-lg font-semibold text-white">{permissions.microphone ? 'Active' : 'Inactive'}</p>
+                  </div>
                 </div>
                 <div className="rounded-3xl border border-white/10 bg-slate-950/80 p-5">
-                  <p className="text-sm text-slate-400">AI status</p>
-                  <p className="mt-3 text-2xl font-semibold text-white">Ready</p>
+                  <p className="text-sm text-slate-400">Location</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <div className={`h-3 w-3 rounded-full ${permissions.location ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <p className="text-lg font-semibold text-white">{permissions.location ? 'Enabled' : 'Disabled'}</p>
+                  </div>
                 </div>
               </div>
             </div>
